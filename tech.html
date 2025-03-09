@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeToCash - Check Your Bill</title>
+    <!-- <script src="app1.js"></script> -->
+    <link rel="stylesheet" href="styles1.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar__container">
+            <a href="/index1.html" id="navbar__logo">CodeToCash</a>
+            <div class="navbar__toggle" id="mobile-menu">
+                <span class="bar"></span> <span class="bar"></span> <span class="bar"></span>
+            </div>
+            <ul class="navbar__menu">
+                <li class="navbar__item"><a href="/index1.html" class="navbar__links">Home</a></li>
+                <li class="navbar__item"><a href="/tech.html" class="navbar__links">Check Your Bill</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- CPT Code Input Section -->
+    <section class="cpt-section">
+        <div class="form-box">
+            <h2>Check Your Medical Bill</h2>
+            <p>Enter CPT codes and treatments from your bill to verify accuracy.</p>
+
+            <form id="cpt-form">
+                <div id="input-container">
+                    <!-- First Row (Default) -->
+                    <div class="input-row">
+                        <input type="text" id="cpt-code" placeholder="Enter 5-digit CPT Code" required>
+                        <input type="text" id="treatment" placeholder="Enter treatment name as shown on bill" required>
+                        <button type="button" class="delete-btn" onclick="removeRow(this)">🗑</button>
+                    </div>
+                </div>
+
+                <button type="button" onclick="addFields()" class="add-btn">+ Add Another Entry</button>
+                <button type="button" onclick="checkBill()" class="submit-btn">Check Bill</button>
+            </form>
+
+            <!-- Result container for backend response -->
+            <div id="bill-result"></div>
+        </div>
+    </section>
+
+    <!-- JavaScript for dynamic field addition and deletion -->
+    <script>
+        function addFields() {
+            const inputContainer = document.getElementById("input-container");
+
+            // Create a new input row
+            const newRow = document.createElement("div");
+            newRow.classList.add("input-row");
+
+            newRow.innerHTML = `
+                <input type="text" id="cpt-code" placeholder="Enter 5-digit CPT Code" required>
+                <input type="text" id="treatment" placeholder="Enter treatment name as shown on bill" required>
+                <button type="button" class="delete-btn" onclick="removeRow(this)">🗑</button>
+            `;
+
+            inputContainer.appendChild(newRow);
+        }
+
+        function removeRow(button) {
+            const row = button.parentElement;
+            const inputContainer = document.getElementById("input-container");
+
+            // Ensure at least one row remains
+            if (inputContainer.children.length > 1) {
+                row.remove();
+            }
+        }
+
+
+        // Mobile Menu Toggle
+const menu = document.querySelector('#mobile-menu');
+const menuLinks = document.querySelector('.navbar__menu');
+
+menu.addEventListener('click', () => {
+    menu.classList.toggle('is-active');
+    menuLinks.classList.toggle('active');
+})
+
+// Function to handle CPT Code and Treatment submission
+function checkBill() {
+    const cptCodes = document.querySelectorAll("#cpt-code");
+    const treatments = document.querySelectorAll("#treatment");
+    const cptCode = document.getElementById("cpt-code").value;
+    const treatment = document.getElementById("treatment").value;
+    const resultDiv = document.getElementById("bill-result");
+//resultDiv.innerText = "i'm here"+treatments[0].value;
+    if (!cptCodes || !treatment) {
+        resultDiv.innerText = "Please enter both CPT code and treatment!";
+        return;
+    }
+    fetch("http://localhost:3000/verifyCPT", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submittedCPT: cptCode, treatment: treatment }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        resultDiv.innerHTML = data.message;
+        if (data.correctCode) {
+            resultDiv.innerHTML += `<br>Correct CPT Code: ${data.correctCode}`;
+        }
+    })
+
+    
+    .catch(error => {
+        console.error("Error:", error);
+        resultDiv.innerText += "<br>There was an error processing your request.";
+    });
+   
+}
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkBillButton = document.getElementById("check-bill-button");
+        
+        if (checkBillButton) {
+            checkBillButton.addEventListener("click", checkBill);
+        } else {
+            console.error("Button not found! Check your HTML.");
+        }
+    });
+
+
+    </script>
+
+    <!-- Link to your app1.js for handling backend logic -->
+    <!-- <script src="app1.js"></script> -->
+
+</body>
+</html>
